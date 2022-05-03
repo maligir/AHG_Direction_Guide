@@ -124,7 +124,8 @@ class DataGenerator(tf.keras.utils.Sequence):
 
 def visualize_depth_map(samples, test=False, model=None):
     input, target = samples
-    cmap = plt.cm.jet
+    # cmap = plt.cm.jet
+    cmap = plt.cm.get_cmap("jet").copy()
     cmap.set_bad(color="black")
 
     if test:
@@ -142,28 +143,28 @@ def visualize_depth_map(samples, test=False, model=None):
             ax[i, 1].imshow((target[i].squeeze()), cmap=cmap)
 
 
-visualize_samples = next(
-    iter(DataGenerator(data=df, batch_size=6, dim=(HEIGHT, WIDTH)))
-)
-visualize_depth_map(visualize_samples)
+# visualize_samples = next(
+#     iter(DataGenerator(data=df, batch_size=6, dim=(HEIGHT, WIDTH)))
+# )
+# visualize_depth_map(visualize_samples)
 
-depth_vis = np.flipud(visualize_samples[1][1].squeeze())  # target
-img_vis = np.flipud(visualize_samples[0][1].squeeze())  # input
+# depth_vis = np.flipud(visualize_samples[1][1].squeeze())  # target
+# img_vis = np.flipud(visualize_samples[0][1].squeeze())  # input
 
-fig = plt.figure(figsize=(15, 10))
-ax = plt.axes(projection="3d")
+# fig = plt.figure(figsize=(15, 10))
+# ax = plt.axes(projection="3d")
 
-STEP = 3
-for x in range(0, img_vis.shape[0], STEP):
-    for y in range(0, img_vis.shape[1], STEP):
-        ax.scatter(
-            [depth_vis[x, y]] * 3,
-            [y] * 3,
-            [x] * 3,
-            c=tuple(img_vis[x, y, :3] / 255),
-            s=3,
-        )
-    ax.view_init(45, 135)
+# STEP = 3
+# for x in range(0, img_vis.shape[0], STEP):
+#     for y in range(0, img_vis.shape[1], STEP):
+#         ax.scatter(
+#             [depth_vis[x, y]] * 3,
+#             [y] * 3,
+#             [x] * 3,
+#             c=tuple(img_vis[x, y, :3] / 255),
+#             s=3,
+#         )
+#     ax.view_init(45, 135)
 
 class DownscaleBlock(layers.Layer):
     def __init__(
@@ -337,6 +338,8 @@ class DepthEstimationModel(tf.keras.Model):
 
         return self.conv_layer(u4)
 
+# comment all of this out after saving the model and load the model up again
+
 optimizer = tf.keras.optimizers.Adam(
     learning_rate=LR,
     amsgrad=False,
@@ -355,11 +358,17 @@ train_loader = DataGenerator(
 validation_loader = DataGenerator(
     data=df[260:].reset_index(drop="true"), batch_size=BATCH_SIZE, dim=(HEIGHT, WIDTH)
 )
+
 model.fit(
     train_loader,
     epochs=EPOCHS,
     validation_data=validation_loader,
 )
+
+# model.save('depth_estimation_model')
+
+# model = tf.keras.models.load_model('depth_estimation_model')
+
 
 test_loader = next(
     iter(
@@ -378,3 +387,5 @@ test_loader = next(
     )
 )
 visualize_depth_map(test_loader, test=True, model=model)
+
+plt.show()
