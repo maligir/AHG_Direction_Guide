@@ -14,8 +14,8 @@ int main(int argc, char**argv) {
   ros::NodeHandle n;
 
   ros::NodeHandle privateNode("~");
-  
-  
+  string door_name;
+  nh.getParam("door", door_name);  
   /*string locationA;
   privateNode.param<string>("a",locationA,"d3_414b1");
 
@@ -24,12 +24,9 @@ int main(int argc, char**argv) {
   
   std::vector<string> doors;
   
-  doors.push_back("d3_414b1");
-  doors.push_back("d3_414b2");
-  doors.push_back("d3_414a1");
-  doors.push_back("d3_414a2");
-
-  doors.push_back("d3_418");
+  doors.push_back(door_name);
+  //doors.push_back("d3_418");
+  
   int current_door = 0;
 
   Client client("/plan_executor/execute_plan", true);
