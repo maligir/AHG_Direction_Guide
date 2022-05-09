@@ -70,6 +70,12 @@ class FaceVerification:
 			print('>face is NOT a Match (%.3f > %.3f)' % (score, thresh))
 			return False
 
+	def clean_images(self, imageName):
+		try:
+			if os.path.isfile(imageName) or os.path.islink(imageName):
+						os.unlink(imageName)
+		except Exception as e:
+			print(e)
 
 	def clean_folder(self, folder):
 		for filename in os.listdir(folder):
@@ -106,7 +112,6 @@ class FaceVerification:
 		filenames = []
 		frameCounter = 0
 		fileCounter = 0
-		os.chdir("./img")
 		# infinite loop until esc key is pressed
 		while rval:
 			# Get frame from camera and wait a few milliseconds
@@ -127,14 +132,16 @@ class FaceVerification:
 				print(filenames)
 				embeddings = self.get_embeddings(filenames)
 				trueOrNot = self.is_match(embeddings[0], embeddings[fileCounter])
-				self.write_result(trueOrNot)
+				self.write_result(trueOrNot, 'result.txt')
 				fileCounter += 1
 			#update frame counter
 			frameCounter+=1
 		# Clean up and Destroy all windows and files
 		cv2.destroyWindow("preview")
 		vc.release()
-		self.clean_folder(".")
+		# self.clean_folder(".")
+		self.clean_images("img0.jpg")
+		self.clean_images("img1.jpg")
 
 
 app = FaceVerification()
