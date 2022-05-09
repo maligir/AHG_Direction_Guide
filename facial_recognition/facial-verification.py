@@ -20,6 +20,8 @@ class FaceVerification:
 		self.curHeight = 0
 		self.origWidth = 0
 		self.origHeight = 0
+		self.passPhrase = "pass"
+		self.failPhrase = "fail"
  
 	# extract a single face from a given photograph
 	def extract_face(self, filename, required_size=(224, 224)):
@@ -79,6 +81,17 @@ class FaceVerification:
 					shutil.rmtree(file_path)
 			except Exception as e:
 				print('Failed to delete %s. Reason: %s' % (file_path, e))
+	
+	def write_result(self, trueOrNot, filename):
+		f = open(filename, "r")
+		fileContents = f.read()
+		f.close()
+		if(fileContents == self.passPhrase and trueOrNot == False):
+			f = open(filename, "w")
+			f.write(self.failPhrase)
+		elif(fileContents == self.failPhrase and trueOrNot == True):
+			f = open(filename, "w")
+			f.write(self.passPhrase)
 
 	def run(self):
 		# Create window connected to camera
@@ -113,7 +126,8 @@ class FaceVerification:
 					filenames.pop(1)
 				print(filenames)
 				embeddings = self.get_embeddings(filenames)
-				self.is_match(embeddings[0], embeddings[fileCounter])
+				trueOrNot = self.is_match(embeddings[0], embeddings[fileCounter])
+				self.write_result(trueOrNot)
 				fileCounter += 1
 			#update frame counter
 			frameCounter+=1
