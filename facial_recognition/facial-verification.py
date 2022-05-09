@@ -1,3 +1,4 @@
+from ctypes import sizeof
 from pickle import FALSE
 from matplotlib import pyplot
 from PIL import Image
@@ -15,15 +16,20 @@ class FaceVerification:
 		self.detector = MTCNN()
 		self.model = VGGFace(model='resnet50', include_top=False, input_shape=(224, 224, 3), pooling='avg')
 		self.defaultFaces = self.extract_face(default_image)
+		self.curWidth = 0
+		self.curHeight = 0
+		self.origWidth = 0
+		self.origHeight = 0
  
 	# extract a single face from a given photograph
 	def extract_face(self, filename, required_size=(224, 224)):
 		# load image from file
 		pixels = pyplot.imread(filename)
-		# create the detector, using default weights
-		detector = MTCNN()
+		oldImage = Image.fromarray(pixels)
+		self.origWidth = oldImage.width
+		self.origHeight = oldImage.height
 		# detect faces in the image
-		results = detector.detect_faces(pixels)
+		results = self.detector.detect_faces(pixels)
 		# extract the bounding box from the first face
 		if len(results) == 0:
 			return self.defaultFaces
@@ -33,6 +39,8 @@ class FaceVerification:
 		face = pixels[y1:y2, x1:x2]
 		# resize pixels to the model size
 		image = Image.fromarray(face)
+		self.curWidth = image.width
+		self.curHeight = image.height
 		image = image.resize(required_size)
 		face_array = asarray(image)
 		return face_array
@@ -40,7 +48,6 @@ class FaceVerification:
 	# extract faces and calculate face embeddings for a list of photo files
 	def get_embeddings(self, filenames):
 		# extract faces
-
 		faces = [self.extract_face(f) for f in filenames]
 		# convert into an array of samples
 		samples = asarray(faces, 'float32')
@@ -54,10 +61,13 @@ class FaceVerification:
 	def is_match(self, known_embedding, candidate_embedding, thresh=0.4):
 		# calculate distance between embeddings
 		score = cosine(known_embedding, candidate_embedding)
-		if score <= thresh:
+		if score <= thresh and self.curWidth/self.origWidth > 0.05 :
 			print('>face is a Match (%.3f <= %.3f)' % (score, thresh))
+			return True
 		else:
 			print('>face is NOT a Match (%.3f > %.3f)' % (score, thresh))
+			return False
+
 
 	def clean_folder(self, folder):
 		for filename in os.listdir(folder):
@@ -94,9 +104,14 @@ class FaceVerification:
 				break
 			# Every 120 frames, save a frame and run facial recognition
 			if(frameCounter%120 == 0):
+				if(fileCounter > 1):
+					fileCounter = 1
 				filename = "img" + str(fileCounter) + ".jpg"
 				cv2.imwrite(filename, frame)
 				filenames.append(filename)
+				if(len(filenames) > 2):
+					filenames.pop(1)
+				print(filenames)
 				embeddings = self.get_embeddings(filenames)
 				self.is_match(embeddings[0], embeddings[fileCounter])
 				fileCounter += 1
