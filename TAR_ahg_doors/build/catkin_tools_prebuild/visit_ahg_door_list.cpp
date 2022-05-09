@@ -34,6 +34,7 @@ int main(int argc, char**argv) {
 
   bool fromAtoB = true;
 
+  //and input is true
   while (ros::ok()) {
 
     string location = doors.at(current_door);
@@ -50,6 +51,10 @@ int main(int argc, char**argv) {
     plan_execution::AspRule rule;
     plan_execution::AspFluent fluent;
     fluent.name = "not is_near_name";
+    
+    //if input is true, push back door destination, else go back to start
+    
+    //start position???
 
     fluent.variables.push_back("1");
     fluent.variables.push_back("\"" + location + "\"");
