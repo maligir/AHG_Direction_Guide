@@ -1,0 +1,8 @@
+scipy
+matplotlib
+mtcnn
+opencv-python
+tensorflow
+keras_vggface
+keras_applications
+pyk4a
