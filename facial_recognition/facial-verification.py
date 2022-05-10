@@ -9,6 +9,7 @@ from keras_vggface.vggface import VGGFace
 from keras_vggface.utils import preprocess_input
 import cv2
 import os, shutil
+from pyk4a import PyK4A
 
 class FaceVerification:
 
@@ -100,32 +101,40 @@ class FaceVerification:
 			f.write(self.passPhrase)
 
 	def run(self):
+
+		k4a = PyK4A()
+		k4a.start()
+
+		capture = k4a.get_capture()
+		frame  = Image.fromarray(capture.color)
 		# Create window connected to camera
-		cv2.namedWindow("Facial Verification")
-		vc = cv2.VideoCapture(0)
+		# cv2.namedWindow("Facial Verification")
+		#vc = cv2.VideoCapture(0)
 		# Try to read in first frame
-		if vc.isOpened():
-			rval, frame = vc.read()
-		else:
-			rval = False
+		#if vc.isOpened():
+		#	rval, frame = vc.read()
+		#else:
+		#	rval = False
 		#Create Constants
 		filenames = []
 		frameCounter = 0
 		fileCounter = 0
+		key = 26
 		# infinite loop until esc key is pressed
-		while rval:
+		while not key == 27:
 			# Get frame from camera and wait a few milliseconds
-			cv2.imshow("preview", frame)
-			rval, frame = vc.read()
+			# cv2.imshow("preview", frame)
+			capture = k4a.get_capture()
+			frame = Image.fromarray(capture.color)
+			frame = frame.convert("RGB")
 			key = cv2.waitKey(20)
-			if key == 27 or not rval: # exit on ESC
-				break
 			# Every 120 frames, save a frame and run facial recognition
 			if(frameCounter%120 == 0):
 				if(fileCounter > 1):
 					fileCounter = 1
 				filename = "img" + str(fileCounter) + ".jpg"
-				cv2.imwrite(filename, frame)
+				# cv2.imwrite(filename, frame)
+				frame.save(filename)
 				filenames.append(filename)
 				if(len(filenames) > 2):
 					filenames.pop(1)
@@ -138,7 +147,6 @@ class FaceVerification:
 			frameCounter+=1
 		# Clean up and Destroy all windows and files
 		cv2.destroyWindow("preview")
-		vc.release()
 		# self.clean_folder(".")
 		self.clean_images("img0.jpg")
 		self.clean_images("img1.jpg")
@@ -146,4 +154,3 @@ class FaceVerification:
 
 app = FaceVerification()
 app.run()
-
